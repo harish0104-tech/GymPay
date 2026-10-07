@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0B0B0B"/>
+  <rect x="48" y="48" width="416" height="416" rx="64" fill="#FFE600"/>
+  <g transform="translate(256 256)">
+    <path d="M-60,-100 L-60,-20 L-20,-20 L-20,-100 L20,-100 L20,-20 L60,-20 L60,20 L20,20 L20,100 L-20,100 L-20,20 L-60,20 Z" fill="#0B0B0B" transform="rotate(45) scale(0.8)"/>
+  </g>
+  <text x="256" y="440" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#0B0B0B" text-anchor="middle">MFC</text>
+</svg>
