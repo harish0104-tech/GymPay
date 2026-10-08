@@ -3,7 +3,7 @@ import { Download, FileText, Loader2 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type Member, type Payment } from '@/lib/supabase';
+import { localData, type Member, type Payment } from '@/lib/localData';
 import { canShareNativeFile, shareNativeFile } from '@/lib/nativeFileExport';
 
 type PaymentExportRow = Omit<Payment, 'member'> & {
@@ -46,7 +46,7 @@ async function loadPaymentsForMonth(gymId: string, month: string) {
   const records: PaymentExportRow[] = [];
 
   for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await supabase
+    const { data, error } = await localData
       .from('payments')
       .select('*, member:members(name, phone)')
       .eq('gym_id', gymId)

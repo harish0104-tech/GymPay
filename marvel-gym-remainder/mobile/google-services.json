@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1092260295232",
+    "project_id": "marvel-gym-remainder",
+    "storage_bucket": "marvel-gym-remainder.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1092260295232:android:6fca135aa7bd51efea25a5",
+        "android_client_info": {
+          "package_name": "com.marvelfitnessculture.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1092260295232-ha8sal20vmjps7do3d1ron7m1bp84bej.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyAjN1FqXeun6J87uAXcgZW8-289ls9Yk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1092260295232-ha8sal20vmjps7do3d1ron7m1bp84bej.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,4 @@
-import type { MembershipType, DurationUnit, MembershipStatus, PaymentStatus } from './supabase';
+import type { MembershipType, DurationUnit, MembershipStatus, PaymentStatus } from './types';
 
 export function formatDate(dateStr: string): string {
   if (!dateStr) return '';

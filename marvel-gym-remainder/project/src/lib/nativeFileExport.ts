@@ -11,7 +11,7 @@ export function canShareNativeFile() {
 export async function shareNativeFile(filename: string, mimeType: string, base64: string) {
   const nativeWindow = window as NativeFileWindow;
   if (!nativeWindow.ReactNativeWebView || !nativeWindow.mfcNativeFileSharing) {
-    throw new Error('Install the latest MFC app to save this report.');
+    throw new Error('Install the latest Gym Pay app to save this report.');
   }
 
   const id = crypto.randomUUID();

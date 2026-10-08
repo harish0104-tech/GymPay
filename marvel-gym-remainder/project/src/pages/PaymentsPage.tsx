@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type Payment, type Member } from '@/lib/supabase';
+import { localData, type Payment, type Member } from '@/lib/localData';
 import { formatDate, formatCurrency, todayInKolkata, getRelativeDateLabel } from '@/lib/utils';
 import MemberPhoto from '@/components/MemberPhoto';
 import MembershipTypeBadge from '@/components/MembershipTypeBadge';
@@ -68,7 +68,7 @@ export default function PaymentsPage({ filterRequest }: PaymentsPageProps) {
   const deletePayment = async (payment: PaymentWithMember) => {
     if (!gym || !window.confirm(`Delete this ${formatCurrency(payment.amount)} payment for ${payment.member?.name ?? 'this member'}?`)) return;
     setDeletingId(payment.id);
-    const { error } = await supabase.from('payments').delete().eq('id', payment.id).eq('gym_id', gym.id);
+    const { error } = await localData.from('payments').delete().eq('id', payment.id).eq('gym_id', gym.id);
     setDeletingId(null);
     if (error) return toast(error.message, 'error');
     const remaining = payments.filter(item => item.id !== payment.id);
@@ -107,10 +107,10 @@ export default function PaymentsPage({ filterRequest }: PaymentsPageProps) {
         { data: pendingData },
         { data: todayData },
       ] = await Promise.all([
-        supabase.from('payments').select('*, member:members(*)').eq('gym_id', gym.id).order('created_at', { ascending: false }).limit(1000),
-        supabase.from('payments').select('amount').eq('gym_id', gym.id).eq('status', 'paid').gte('payment_date', monthStart).lt('payment_date', nextMonthStart),
-        supabase.from('payments').select('amount').eq('gym_id', gym.id).eq('status', 'pending'),
-        supabase.from('payments').select('amount').eq('gym_id', gym.id).eq('status', 'paid').eq('payment_date', today),
+        localData.from('payments').select('*, member:members(*)').eq('gym_id', gym.id).order('created_at', { ascending: false }).limit(1000),
+        localData.from('payments').select('amount').eq('gym_id', gym.id).eq('status', 'paid').gte('payment_date', monthStart).lt('payment_date', nextMonthStart),
+        localData.from('payments').select('amount').eq('gym_id', gym.id).eq('status', 'pending'),
+        localData.from('payments').select('amount').eq('gym_id', gym.id).eq('status', 'paid').eq('payment_date', today),
       ]);
 
       if (cancelled) return;

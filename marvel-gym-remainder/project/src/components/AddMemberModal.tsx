@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type Plan, type MembershipType } from '@/lib/supabase';
+import { localData, type Plan, type MembershipType } from '@/lib/localData';
 import { calculateExpiryDate, getMembershipTypeLabel, formatCurrency } from '@/lib/utils';
 import { validateImageUpload } from '@/lib/imageUpload';
 import Modal from '@/components/ui/Modal';
@@ -37,7 +37,7 @@ export default function AddMemberModal({ open, onClose, onSaved }: AddMemberModa
 
   useEffect(() => {
     if (!open || !gym) return;
-    supabase.from('plans').select('*').eq('gym_id', gym.id).eq('is_active', true).order('name')
+    localData.from('plans').select('*').eq('gym_id', gym.id).eq('is_active', true).order('name')
       .then(({ data }) => setPlans(data as Plan[] ?? []));
   }, [open, gym]);
 
@@ -118,15 +118,15 @@ export default function AddMemberModal({ open, onClose, onSaved }: AddMemberModa
         setUploadingPhoto(true);
         const blob = await resizeImage(photoFile);
         const fileName = `${gym.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-        const { error: uploadError } = await supabase.storage.from('member-photos')
+        const { error: uploadError } = await localData.storage.from('member-photos')
           .upload(fileName, blob, { contentType: 'image/jpeg' });
         if (uploadError) throw new Error('Failed to upload photo');
-        const { data: { publicUrl } } = supabase.storage.from('member-photos').getPublicUrl(fileName);
+        const { data: { publicUrl } } = localData.storage.from('member-photos').getPublicUrl(fileName);
         finalPhotoUrl = publicUrl;
         setUploadingPhoto(false);
       }
 
-      const { data: memberData, error: memberError } = await supabase.from('members')
+      const { data: memberData, error: memberError } = await localData.from('members')
         .insert({
           gym_id: gym.id,
           name: name.trim(),
@@ -139,9 +139,9 @@ export default function AddMemberModal({ open, onClose, onSaved }: AddMemberModa
         .limit(1);
 
       if (memberError || !memberData || memberData.length === 0) throw new Error('Failed to add member');
-      const member = memberData[0];
+      const member = (Array.isArray(memberData) ? memberData[0] : memberData);
 
-      const { data: membershipData, error: membershipError } = await supabase.from('memberships')
+      const { data: membershipData, error: membershipError } = await localData.from('memberships')
         .insert({
           gym_id: gym.id,
           member_id: member.id,
@@ -154,10 +154,10 @@ export default function AddMemberModal({ open, onClose, onSaved }: AddMemberModa
         .limit(1);
 
       if (membershipError || !membershipData || membershipData.length === 0) throw new Error('Failed to create membership');
-      const membership = membershipData[0];
+      const membership = (Array.isArray(membershipData) ? membershipData[0] : membershipData);
 
       if (paymentStatus === 'paid' && selectedPlan) {
-        await supabase.from('payments').insert({
+        await localData.from('payments').insert({
           gym_id: gym.id,
           member_id: member.id,
           membership_id: membership.id,
@@ -167,7 +167,7 @@ export default function AddMemberModal({ open, onClose, onSaved }: AddMemberModa
           status: 'paid',
         });
       } else if (paymentStatus === 'pending' && selectedPlan) {
-        await supabase.from('payments').insert({
+        await localData.from('payments').insert({
           gym_id: gym.id,
           member_id: member.id,
           membership_id: membership.id,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type MembershipType, type DurationUnit } from '@/lib/supabase';
+import { localData, type MembershipType, type DurationUnit } from '@/lib/localData';
 import { getMembershipTypeLabel } from '@/lib/utils';
 import { Loader2, Check, ChevronRight } from 'lucide-react';
 
@@ -100,7 +100,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
     if (!planName.trim()) { toast('Plan name is required.', 'error'); return; }
     setSaving(true);
     try {
-      const { error } = await supabase.from('plans').insert({
+      const { error } = await localData.from('plans').insert({
         gym_id: gym.id,
         name: planName.trim(),
         membership_type: planType,
@@ -123,8 +123,8 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
       <div className="w-full max-w-md my-auto">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <img src="/mfc-icon-v2-192.png" alt="Marvel Fitness Culture" className="w-16 h-16 rounded-xl object-cover" />
-          <h1 className="font-display text-2xl text-white tracking-wide">MARVEL FITNESS CULTURE</h1>
+          <img src="/gym-pay-icon.svg" alt="Gym Pay" className="w-16 h-16 rounded-xl object-cover" />
+          <h1 className="font-display text-2xl text-white tracking-wide">GYM PAY</h1>
         </div>
 
         {/* Progress */}

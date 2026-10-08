@@ -1,4 +1,4 @@
-import type { MembershipType } from '@/lib/supabase';
+import type { MembershipType } from '@/lib/localData';
 import { getMembershipTypeLabel } from '@/lib/utils';
 
 interface MembershipTypeBadgeProps {

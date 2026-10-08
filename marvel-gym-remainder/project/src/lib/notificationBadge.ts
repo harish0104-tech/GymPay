@@ -17,7 +17,4 @@ export async function applyNotificationBadgeCount(count: number): Promise<void> 
 // Opening the owner's Reminders page is treated as clearing unread notifications.
 export async function clearNotificationBadge(): Promise<void> {
   await applyNotificationBadgeCount(0);
-  if (!('serviceWorker' in navigator)) return;
-  const registration = await navigator.serviceWorker.ready;
-  registration.active?.postMessage({ type: 'MFC_CLEAR_BADGE' });
 }

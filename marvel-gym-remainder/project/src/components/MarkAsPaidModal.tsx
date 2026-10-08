@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type Member, type Membership, type Plan } from '@/lib/supabase';
+import { localData, type Member, type Membership, type Plan } from '@/lib/localData';
 import { calculateExpiryDate, formatCurrency } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import { Loader2 } from 'lucide-react';
@@ -37,7 +37,7 @@ export default function MarkAsPaidModal({ open, onClose, member, membership, pla
     setLoading(true);
     try {
       // 1. Create payment record
-      const { error: payError } = await supabase.from('payments').insert({
+      const { error: payError } = await localData.from('payments').insert({
         gym_id: gym.id,
         member_id: member.id,
         membership_id: membership.id,
@@ -54,7 +54,7 @@ export default function MarkAsPaidModal({ open, onClose, member, membership, pla
       const newExpiry = calculateExpiryDate(newStartDate, plan.duration_value, plan.duration_unit);
 
       // 3. Create new membership period
-      const { data: newMembershipData, error: mbrError } = await supabase.from('memberships').insert({
+      const { data: newMembershipData, error: mbrError } = await localData.from('memberships').insert({
         gym_id: gym.id,
         member_id: member.id,
         plan_id: plan.id,
@@ -63,16 +63,16 @@ export default function MarkAsPaidModal({ open, onClose, member, membership, pla
         status: 'active',
       }).select().limit(1);
       if (mbrError || !newMembershipData || newMembershipData.length === 0) throw new Error('Failed to create new membership');
-      const newMembership = newMembershipData[0];
+      const newMembership = (Array.isArray(newMembershipData) ? newMembershipData[0] : newMembershipData);
 
       // 4. Update old membership to expired (preserve history)
-      await supabase.from('memberships').update({ status: 'expired' }).eq('id', membership.id);
+      await localData.from('memberships').update({ status: 'expired' }).eq('id', membership.id);
 
       // 5. Update member to active
-      await supabase.from('members').update({ is_active: true }).eq('id', member.id);
+      await localData.from('members').update({ is_active: true }).eq('id', member.id);
 
       // 6. Mark any pending/due payments for old membership as paid (skip)
-      await supabase.from('payments')
+      await localData.from('payments')
         .update({ status: 'paid' })
         .eq('membership_id', membership.id)
         .eq('status', 'pending');

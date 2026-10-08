@@ -1,4 +1,4 @@
-import type { MembershipStatus, PaymentStatus } from '@/lib/supabase';
+import type { MembershipStatus, PaymentStatus } from '@/lib/localData';
 import { getStatusLabel, getPaymentStatusLabel } from '@/lib/utils';
 
 export function MembershipStatusBadge({ status }: { status: MembershipStatus }) {

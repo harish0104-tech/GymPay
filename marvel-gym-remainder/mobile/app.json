@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Gym Pay",
+    "slug": "marvel-fitness-culture",
+    "version": "1.0.6",
+    "plugins": [
+      "expo-sharing"
+    ],
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.marvelfitnessculture.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Take a member profile photo.",
+        "NSPhotoLibraryUsageDescription": "Select a member profile photo.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.marvelfitnessculture.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#111111",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2244f0b2-4e6c-4489-8163-085b94644c3b"
+      }
+    },
+    "owner": "harish0104",
+    "scheme": "mfc"
+  }
+}

@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { Home, Users, CreditCard, Bell, Settings, Plus, LogOut, LayoutGrid, X, Menu } from 'lucide-react';
+import { Home, Users, CreditCard, Bell, Settings, Plus, LayoutGrid, X, Menu } from 'lucide-react';
 
 export type PageKey = 'dashboard' | 'members' | 'plans' | 'payments' | 'reminders' | 'settings';
 
@@ -32,8 +31,6 @@ const mobileMoreItems = [
 ];
 
 export default function AppShell({ currentPage, onNavigate, onAddMember, children }: AppShellProps) {
-  const { signOut } = useAuth();
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showMobileMore, setShowMobileMore] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
 
@@ -54,7 +51,7 @@ export default function AppShell({ currentPage, onNavigate, onAddMember, childre
       {/* Desktop sidebar */}
       <aside className="sidebar-texture fixed inset-y-0 left-0 z-30 hidden w-[224px] flex-col border-r border-[#242524] bg-brand-pure md:flex">
         <div className="flex min-h-24 items-center justify-center border-b border-ink-800 px-5 py-3">
-          <img src="/mfc-sidebar-logo-transparent.png" alt="MFC" className="h-14 w-36 object-contain" />
+          <img src="/gym-pay-logo.svg" alt="Gym Pay" className="h-14 w-36 object-contain" />
         </div>
 
         <nav className="flex-1 space-y-1.5 px-4 py-3">
@@ -77,13 +74,7 @@ export default function AppShell({ currentPage, onNavigate, onAddMember, childre
         </nav>
 
         <div className="space-y-2 border-t border-ink-800 p-4">
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 font-heading text-[15px] font-semibold tracking-wide text-ink-300 transition-all hover:bg-status-danger/10 hover:text-status-danger"
-          >
-            <LogOut className="h-[22px] w-[22px]" />
-            Logout
-          </button>
+          <p className="px-3 text-sm text-ink-300">Frontend demo · Local data</p>
         </div>
       </aside>
 
@@ -102,7 +93,7 @@ export default function AppShell({ currentPage, onNavigate, onAddMember, childre
             onClick={event => event.stopPropagation()}
           >
             <div className="relative mb-7 flex min-h-20 items-center justify-center border-b border-white/10 pb-5">
-              <img src="/mfc-sidebar-logo-transparent.png" alt="MFC" className="h-16 w-36 object-contain" />
+              <img src="/gym-pay-logo.svg" alt="Gym Pay" className="h-16 w-36 object-contain" />
               <button type="button" onClick={() => setShowMobileDrawer(false)} className="absolute right-0 top-2 p-2 text-ink-300" aria-label="Close navigation">
                 <X className="h-5 w-5" />
               </button>
@@ -212,24 +203,6 @@ export default function AppShell({ currentPage, onNavigate, onAddMember, childre
         </div>
       </nav>
 
-      {/* Logout confirmation */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowLogoutConfirm(false)}>
-          <div className="card p-6 max-w-sm w-full animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading text-xl font-semibold">Logout?</h3>
-              <button onClick={() => setShowLogoutConfirm(false)} className="text-ink-400 hover:text-ink-700">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-ink-500 text-sm mb-6">You'll need to sign in again to access your gym data.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setShowLogoutConfirm(false)} className="btn-ghost flex-1">Cancel</button>
-              <button onClick={() => { setShowLogoutConfirm(false); signOut(); }} className="btn-danger flex-1">Logout</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

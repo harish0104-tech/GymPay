@@ -387,7 +387,7 @@
   .renewal-header h2 { font-size: 18px; }
 }
 
-/* Minimal MFC palette: neutral surfaces, restrained brand accents. */
+/* Minimal Gym Pay palette: neutral surfaces, restrained brand accents. */
 .minimal-theme[data-theme='light'] {
   --page-bg: #FFFFFF;
   --surface-bg: #FFFFFF;
@@ -509,3 +509,23 @@
     background: rgb(11 11 11 / 48%);
   }
 }
+
+/* Gym Pay owner dashboard */
+.gympay-dashboard { background: #f5f6f8; color: #17191c; min-height: 100vh; }
+.gympay-dashboard .gp-stat { border: 1px solid #e5e7eb; background: white; border-radius: 16px; padding: 20px; text-align: left; box-shadow: 0 2px 4px #11111103; transition: border-color .15s, transform .15s; }
+.gympay-dashboard .gp-stat:hover { border-color: #a3a3a3; transform: translateY(-2px); }
+.gympay-dashboard .gp-stat:nth-child(3) > p { color: #b76a08; }
+.gympay-dashboard .gp-stat:nth-child(4) > p { color: #c23c32; }
+.gympay-dashboard .gp-stat:nth-child(5) > p { color: #16845c; }
+.gympay-dashboard .gp-add { background: #ffe600; color: #151515; box-shadow: 0 4px 14px #e8d20020; }
+.gympay-dashboard .gp-add:hover { background: #eed600; }
+.gympay-dashboard .gp-panel { background: white; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; }
+.gympay-dashboard .gp-section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 20px 24px; border-bottom: 1px solid #e5e7eb; font-size: 12px; font-weight: 800; letter-spacing: .06em; }
+.gympay-dashboard .gp-icon-button { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; }
+.gympay-dashboard .gp-remind { border: 1px solid #d9dce1; border-radius: 8px; padding: 10px 14px; font-size: 11px; font-weight: 800; white-space: nowrap; background: white; }
+.gympay-dashboard .gp-remind:hover { background: #f7f7f0; border-color: #c1b600; }
+.gympay-dashboard .gp-paid { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 82px; padding: 10px; border-radius: 8px; background: #e9f7ef; color: #19724e; font-size: 11px; font-weight: 800; }
+.gympay-dashboard .gp-pay { padding: 9px; border-radius: 8px; color: #19724e; background: #e9f7ef; }
+.gympay-dashboard button:disabled { opacity: .45; cursor: not-allowed; }
+.gympay-dashboard button:focus-visible { outline: 2px solid #8d8100; outline-offset: 3px; }
+@media (max-width: 380px) { .gympay-dashboard .gp-stat { padding: 14px; } .gympay-dashboard .gp-remind { padding: 9px 8px; } }

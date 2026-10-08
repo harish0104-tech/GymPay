@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type Plan, type MembershipType, type DurationUnit } from '@/lib/supabase';
+import { localData, type Plan, type MembershipType, type DurationUnit } from '@/lib/localData';
 import { formatCurrency, getMembershipTypeLabel, getDurationLabel } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import { Plus, LayoutGrid, Edit, Ban, CheckCircle2, Loader2, Trash2, Timer } from 'lucide-react';
@@ -19,7 +19,7 @@ export default function PlansPage() {
   const loadPlans = async () => {
     if (!gym) return;
     setLoading(true);
-    const { data } = await supabase.from('plans').select('*').eq('gym_id', gym.id).order('created_at', { ascending: false });
+    const { data } = await localData.from('plans').select('*').eq('gym_id', gym.id).order('created_at', { ascending: false });
     setPlans(data as Plan[] ?? []);
     setLoading(false);
   };
@@ -27,7 +27,7 @@ export default function PlansPage() {
   useEffect(() => { loadPlans(); }, [gym]);
 
   const handleToggle = async (plan: Plan) => {
-    const { error } = await supabase.from('plans').update({ is_active: !plan.is_active }).eq('id', plan.id);
+    const { error } = await localData.from('plans').update({ is_active: !plan.is_active }).eq('id', plan.id);
     if (error) { toast('Failed to update plan.', 'error'); return; }
     toast(plan.is_active ? 'Plan disabled' : 'Plan enabled');
     loadPlans();
@@ -37,7 +37,7 @@ export default function PlansPage() {
     if (!gym || !deletingPlan) return;
     setDeleting(true);
     try {
-      const { count, error: usageError } = await supabase.from('memberships')
+      const { count, error: usageError } = await localData.from('memberships')
         .select('id', { count: 'exact', head: true })
         .eq('gym_id', gym.id)
         .eq('plan_id', deletingPlan.id);
@@ -47,7 +47,7 @@ export default function PlansPage() {
         setDeletingPlan(null);
         return;
       }
-      const { error } = await supabase.from('plans').delete()
+      const { error } = await localData.from('plans').delete()
         .eq('id', deletingPlan.id)
         .eq('gym_id', gym.id);
       if (error) throw new Error('Failed to delete plan');
@@ -200,14 +200,14 @@ function PlanModal({ plan, onClose, onSaved }: { plan: Plan | null; onClose: () 
     setSaving(true);
     try {
       if (plan) {
-        const { error } = await supabase.from('plans').update({
+        const { error } = await localData.from('plans').update({
           name: name.trim(), membership_type: membershipType, price: priceNum,
           duration_value: durNum, duration_unit: durationUnit,
         }).eq('id', plan.id);
         if (error) throw new Error('Failed to update plan');
         toast('Plan updated successfully');
       } else {
-        const { error } = await supabase.from('plans').insert({
+        const { error } = await localData.from('plans').insert({
           gym_id: gym.id, name: name.trim(), membership_type: membershipType, price: priceNum,
           duration_value: durNum, duration_unit: durationUnit, is_active: true,
         });

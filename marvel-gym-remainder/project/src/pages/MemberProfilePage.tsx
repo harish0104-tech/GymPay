@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type Member, type Membership, type Plan, type Payment } from '@/lib/supabase';
+import { localData, type Member, type Membership, type Plan, type Payment } from '@/lib/localData';
 import { calculateExpiryDate, formatDate, formatCurrency, getMembershipTypeLabel, getMembershipStatus, getDaysRemainingText, getStatusLabel } from '@/lib/utils';
 import MemberPhoto from '@/components/MemberPhoto';
 import MembershipTypeBadge from '@/components/MembershipTypeBadge';
@@ -32,9 +32,9 @@ export default function MemberProfilePage({ memberId, onBack, onEditMember }: Me
     if (!gym || !memberId) return;
     setLoading(true);
     const [{ data: m }, { data: mbrs }, { data: pays }] = await Promise.all([
-      supabase.from('members').select('*').eq('id', memberId).maybeSingle(),
-      supabase.from('memberships').select('*, plan:plans(*)').eq('member_id', memberId).order('created_at', { ascending: false }),
-      supabase.from('payments').select('*').eq('member_id', memberId).order('payment_date', { ascending: false }),
+      localData.from('members').select('*').eq('id', memberId).maybeSingle(),
+      localData.from('memberships').select('*, plan:plans(*)').eq('member_id', memberId).order('created_at', { ascending: false }),
+      localData.from('payments').select('*').eq('member_id', memberId).order('payment_date', { ascending: false }),
     ]);
     setMember(m as Member | null);
     setMemberships((mbrs as any) ?? []);
@@ -55,7 +55,7 @@ export default function MemberProfilePage({ memberId, onBack, onEditMember }: Me
   const handleToggleInactive = async () => {
     setActionLoading(true);
     const newVal = !member.is_active;
-    const { error } = await supabase.from('members').update({ is_active: newVal }).eq('id', member.id);
+    const { error } = await localData.from('members').update({ is_active: newVal }).eq('id', member.id);
     if (error) {
       toast('Failed to update member.', 'error');
     } else {
@@ -68,7 +68,7 @@ export default function MemberProfilePage({ memberId, onBack, onEditMember }: Me
 
   const handleDelete = async () => {
     setActionLoading(true);
-    const { error } = await supabase.from('members').delete().eq('id', member.id);
+    const { error } = await localData.from('members').delete().eq('id', member.id);
     if (error) {
       toast('Failed to delete member.', 'error');
     } else {
@@ -286,7 +286,7 @@ function EditMemberModal({ member, membership, onClose, onSaved }: { member: Mem
 
   useEffect(() => {
     if (!gym) return;
-    supabase.from('plans').select('*').eq('gym_id', gym.id).order('name')
+    localData.from('plans').select('*').eq('gym_id', gym.id).order('name')
       .then(({ data }) => setPlans(data as Plan[] ?? []));
   }, [gym]);
 
@@ -347,18 +347,18 @@ function EditMemberModal({ member, membership, onClose, onSaved }: { member: Mem
       if (photoFile) {
         const blob = await resizeImage(photoFile);
         const fileName = `${member.gym_id}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-        const { error: upErr } = await supabase.storage.from('member-photos').upload(fileName, blob, { contentType: 'image/jpeg' });
+        const { error: upErr } = await localData.storage.from('member-photos').upload(fileName, blob, { contentType: 'image/jpeg' });
         if (upErr) throw new Error('Photo upload failed');
-        const { data: { publicUrl } } = supabase.storage.from('member-photos').getPublicUrl(fileName);
+        const { data: { publicUrl } } = localData.storage.from('member-photos').getPublicUrl(fileName);
         photoUrl = publicUrl;
       }
-      const { error } = await supabase.from('members').update({
+      const { error } = await localData.from('members').update({
         name: name.trim(), phone: phone.trim(), membership_type: membershipType, photo_url: photoUrl,
       }).eq('id', member.id);
       if (error) throw new Error('Failed to update member');
 
       if (membership) {
-        const { error: membershipError } = await supabase.from('memberships').update({
+        const { error: membershipError } = await localData.from('memberships').update({
           plan_id: planId,
           start_date: startDate,
           expiry_date: expiryDate,
@@ -366,7 +366,7 @@ function EditMemberModal({ member, membership, onClose, onSaved }: { member: Mem
         }).eq('id', membership.id).eq('gym_id', member.gym_id);
         if (membershipError) throw new Error('Member details were updated, but membership dates could not be saved.');
       } else {
-        const { error: membershipError } = await supabase.from('memberships').insert({
+        const { error: membershipError } = await localData.from('memberships').insert({
           gym_id: member.gym_id,
           member_id: member.id,
           plan_id: planId,

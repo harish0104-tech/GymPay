@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type Member, type Membership, type Plan } from '@/lib/supabase';
+import { localData, type Member, type Membership, type Plan } from '@/lib/localData';
 import { formatDate, formatCurrency, getMembershipTypeLabel, daysUntilExpiry, getMembershipStatus, getDaysRemainingText } from '@/lib/utils';
 import MemberPhoto from '@/components/MemberPhoto';
 import { MembershipStatusBadge } from '@/components/StatusBadge';
@@ -43,7 +43,7 @@ export default function MembersPage({ onViewMember, onAddMember, filterRequest }
   const deleteMember = async (member: MemberWithMembership) => {
     if (!gym || !window.confirm(`Delete ${member.name}? Their memberships, reminders, and payment history will also be removed.`)) return;
     setDeletingId(member.id);
-    const { error } = await supabase.from('members').delete().eq('id', member.id).eq('gym_id', gym.id);
+    const { error } = await localData.from('members').delete().eq('id', member.id).eq('gym_id', gym.id);
     setDeletingId(null);
     if (error) return toast(error.message, 'error');
     setMembers(current => current.filter(item => item.id !== member.id));
@@ -64,7 +64,7 @@ export default function MembersPage({ onViewMember, onAddMember, filterRequest }
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await supabase.from('members')
+      const { data } = await localData.from('members')
         .select('*, latest_membership:memberships(*, plan:plans(*))')
         .eq('gym_id', gym.id)
         .order('created_at', { ascending: false });

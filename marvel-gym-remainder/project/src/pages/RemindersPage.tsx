@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
-import { supabase, type Reminder, type Member, type Membership, type NotificationDeliveryLog } from '@/lib/supabase';
+import { localData, type Reminder, type Member, type Membership, type NotificationDeliveryLog } from '@/lib/localData';
 import { formatDate, formatCurrency, todayInKolkata } from '@/lib/utils';
 import MemberPhoto from '@/components/MemberPhoto';
 import { Bell, CheckCircle2, XCircle, Clock, Calendar, Send, Loader2, AlertTriangle } from 'lucide-react';
 import { clearNotificationBadge } from '@/lib/notificationBadge';
-import { isNativeApp, showNativeReminders } from '@/lib/nativeNotifications';
 
 type TabKey = 'today' | 'upcoming' | 'sent' | 'failed';
 type ReminderRow = Reminder & { member?: Member; delivery_logs?: NotificationDeliveryLog[]; preview?: boolean };
@@ -33,7 +32,7 @@ export default function RemindersPage() {
     const memberships: Membership[] = [];
     let membershipError = false;
     for (let offset = 0; ; offset += 500) {
-      const { data: batch, error } = await supabase.from('memberships')
+      const { data: batch, error } = await localData.from('memberships')
         .select('*, member:members(*), plan:plans(*)')
         .eq('gym_id', gym.id)
         .order('created_at', { ascending: false }).order('id', { ascending: false })
@@ -52,13 +51,13 @@ export default function RemindersPage() {
       .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date)
         || (a.member?.name ?? '').localeCompare(b.member?.name ?? '')
         || a.id.localeCompare(b.id)));
-    const { data: ownerStatus } = await supabase.from('owner_daily_notifications').select('*')
+    const { data: ownerStatus } = await localData.from('owner_daily_notifications').select('*')
       .eq('gym_id', gym.id).eq('notification_date', today).eq('notification_type', 'no_clients_due').maybeSingle();
     setDailyStatus((ownerStatus as any) ?? null);
     const history: ReminderRow[] = [];
     let historyError = false;
     for (let offset = 0; ; offset += 500) {
-    const { data, error } = await supabase.from('reminders')
+    const { data, error } = await localData.from('reminders')
       .select('*, member:members(*), delivery_logs:notification_delivery_logs(*)')
       .eq('gym_id', gym.id)
       .order('scheduled_date', { ascending: false })
@@ -107,59 +106,7 @@ export default function RemindersPage() {
     }
     setSending(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error('Your session expired. Please sign in again.');
-      const response = await fetch(`${supabaseUrl}/functions/v1/daily-reminders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ gym_id: gym.id }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Request failed (${response.status})`);
-      }
-
-      const result = await response.json();
-
-      if (isNativeApp()) {
-        // Read persisted server results, not stale member cards or optimistic text.
-        let count = 0;
-        for (let offset = 0; ; offset += 50) {
-        const { data, error } = await supabase.from('reminders')
-          .select('id,message,member:members(name)')
-          .eq('gym_id', gym.id).eq('scheduled_date', result.date)
-          .eq('reminder_type', 'on_expiry_date').order('id').range(offset, offset + 49);
-        if (error) throw new Error('Reminders were processed, but could not be loaded for phone notifications. Please try again.');
-        const items = (data ?? []).filter(row => row.message).map(row => {
-          const member = row.member as unknown as { name: string } | null;
-          return { id: row.id, title: `${member?.name ?? 'Membership'} expires today`, body: row.message! };
-        });
-        if (offset === 0 && !items.length && result.all_clear > 0) items.push({
-          id: `all-clear:${gym.id}:${result.date}`, title: 'No clients due today',
-          body: 'There are no clients with a membership plan due today.',
-        });
-        count += await showNativeReminders(items);
-        if (!data || data.length < 50) break;
-        }
-        toast(count ? `${count} phone notification(s) posted. Check your notification panel.` : 'No reminders are due today.', 'info');
-        void loadReminders();
-        return;
-      }
-
-      const dispatch = result.notification_dispatch;
-      if (dispatch?.failed > 0) {
-        toast(`Notifications processed: ${dispatch.sent} delivered, ${dispatch.failed} failed. Check delivery logs below.`, 'error');
-      } else if (dispatch?.sent > 0) {
-        toast(`${dispatch.sent} notification delivery event(s) completed.`);
-      } else if (result.created > 0) {
-        toast(`${result.created} in-app reminder(s) created.`);
-      } else {
-        toast('No new reminders to send.', 'info');
-      }
+      toast('Frontend demo: reminders are displayed locally. Sending notifications requires a backend.', 'info');
 
       loadReminders();
     } catch (err) {
