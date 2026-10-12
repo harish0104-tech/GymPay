@@ -7,6 +7,6 @@ class DemoBoundary extends Component<{
 }> {
     state = { failed: false };
     static getDerivedStateFromError() { return { failed: true }; }
-    render() { return this.state.failed ? <main style={{ padding: 32, fontFamily: 'Arial,sans-serif' }}><h1>Unable to open Gym Pay demo</h1><p>Allow browser storage and reload. If saved demo data is invalid, export or back it up before clearing this site's data.</p><button onClick={() => window.location.reload()}>Reload</button></main> : this.props.children; }
+    render() { return this.state.failed ? <main style={{ padding: 32, fontFamily: '"Plus Jakarta Sans",system-ui,sans-serif' }}><h1>Unable to open Gym Pay demo</h1><p>Allow browser storage and reload. If saved demo data is invalid, export or back it up before clearing this site's data.</p><button onClick={() => window.location.reload()}>Reload</button></main> : this.props.children; }
 }
 export default function App() { return <DemoBoundary><WorkflowApp /></DemoBoundary>; }

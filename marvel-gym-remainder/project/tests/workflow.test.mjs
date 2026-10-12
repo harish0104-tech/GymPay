@@ -12,9 +12,9 @@ const owner=s=>s.accounts.find(a=>a.role==='owner');
 const staff=s=>s.accounts.find(a=>a.role==='staff');
 function draft(s,overrides={}) {return {name:'Test Member',mobile:'9876543210',birthday:'',planId:s.plans[0].id,fee:1500,start:M.today(),expiry:M.expiry(M.today(),1),payment:'partial',amount:500,...overrides};}
 test('four role menus expose only intended workflows',()=>{
- assert.deepEqual(M.menus.staff,['Payments','Pending dues']);
+ assert.deepEqual(M.menus.staff,['Dashboard','Payments','Pending dues']);
  assert.ok(!M.menus.member.includes('Members'));assert.ok(!M.menus.member.includes('Expenses'));
- assert.ok(M.menus.super_admin.includes('Client payments'));assert.ok(!M.menus.owner.includes('Clients'));
+ assert.ok(M.menus.super_admin.includes('Payments / Revenue'));assert.ok(!M.menus.owner.includes('Clients'));
 });
 test('partial payment preserves fee, receipt and outstanding through reload',()=>{
  const s=M.loadState();const id=M.addMember(s,owner(s),draft(s));const m=M.latest(s,id);
@@ -70,4 +70,21 @@ test('absence excludes recent check-ins and new members, includes seven-day abse
  s.attendance[0].date=M.shift(M.today(),-7);
  assert.ok(M.absentMemberships(s,owner(s)).some(m=>m.memberId===id));
  const added=M.addMember(s,owner(s),draft(s));assert.ok(!M.absentMemberships(s,owner(s)).some(m=>m.memberId===added));
+});
+
+
+test('refund retains ledger, restores balance and reconciles collection',()=>{const s=M.loadState(),a=owner(s),p=s.payments[0],period=s.memberships.find(m=>m.id===p.membershipId);const count=s.payments.length;M.correctPayment(s,a,p.id,'refunded','Duplicate transfer');assert.equal(s.payments.length,count);assert.equal(M.balance(s,period),period.fee);const totals=M.collectionSummary(s.payments,M.today(),M.today());assert.equal(totals.net,0);assert.equal(totals.gross,1500);assert.equal(totals.refunds,1500);assert.throws(()=>M.correctPayment(s,a,p.id,'voided','Again'));assert.throws(()=>M.correctPayment(s,staff(s),p.id,'voided','Denied'));assert.ok(s.audit.some(a=>a.action==='PAYMENT_REFUNDED'));});
+test('pending checkout cannot mark payment received and repeated outcome is idempotent',()=>{const s=M.loadState(),a=s.accounts.find(a=>a.role==='member'),m=M.latest(s,a.memberId);M.createDemoOrder(s,a,m.id,100);const p=s.payments.at(-1);assert.equal(M.received(s,m.id),0);assert.throws(()=>M.createDemoOrder(s,a,m.id,100));M.resolveDemoOrder(s,a,p.id,'successful');M.resolveDemoOrder(s,a,p.id,'successful');assert.equal(M.received(s,m.id),100);assert.ok(M.receiptFor(s,a,p.id).payment.receipt);assert.throws(()=>M.receiptFor(s,s.accounts.find(x=>x.role==='member'&&x.id!==a.id),p.id));});
+test('permissions are owner controlled and subscription restrictions prevent changes',()=>{const s=M.loadState(),a=staff(s);M.saveStaff(s,owner(s),a.id,a.name,a.mobile,['payments','attendance'],true,'Reception duties');assert.ok(M.menusFor(a).includes('Attendance'));M.punch(s,a,s.members[0].id);s.clients[0].status='READ_ONLY';assert.throws(()=>M.recordPayment(s,a,s.memberships[0].id,100,'Cash'),/read-only/);s.clients[0].status='SUSPENDED';assert.throws(()=>M.recordPayment(s,a,s.memberships[0].id,100,'Cash'),/suspended/);});
+test('reminders require consent, deduplicate and retry only failed jobs',()=>{const s=M.loadState(),a=owner(s),m=s.members[0];assert.equal(M.queueMessages(s,a,[m.id],'Expiry'),0);m.consent=true;assert.equal(M.queueMessages(s,a,[m.id],'Expiry'),1);assert.equal(M.queueMessages(s,a,[m.id],'Expiry'),0);const r=s.reminders.at(-1);assert.throws(()=>M.retryMessage(s,a,r.id));r.status='failed';M.retryMessage(s,a,r.id);assert.equal(r.status,'queued');});
+test('plan edits preserve historical fees and tenant boundaries',()=>{const s=M.loadState(),a=owner(s),old=s.memberships[0].fee;M.savePlan(s,a,{...s.plans[0],fee:1900});assert.equal(s.memberships[0].fee,old);assert.throws(()=>M.savePlan(s,a,{...s.plans[0],gymId:'other'}));assert.throws(()=>M.updateSubscription(s,a,s.clients[0].id,{status:'SUSPENDED'},'Unauthorized'));});
+
+test('staff navigation follows granted duties and retains personal help pages',()=>{
+ const s=M.loadState(),a=staff(s);
+ assert.deepEqual(M.menusFor(a).slice(0,3),['Dashboard','Payments','Pending dues']);
+ for(const page of ['Profile','Billing / Help','Notifications'])assert.ok(M.menusFor(a).includes(page));
+ assert.ok(!M.menusFor(a).includes('Reports'));assert.ok(!M.menusFor(a).includes('Gym Settings'));
+ M.saveStaff(s,owner(s),a.id,a.name,a.mobile,['attendance','view_members'],true,'Check-in desk');
+ assert.ok(M.menusFor(a).includes('Attendance'));assert.ok(M.menusFor(a).includes('Members'));
+ assert.ok(!M.menusFor(a).includes('Payments'));assert.ok(!M.menusFor(a).includes('Pending dues'));
 });

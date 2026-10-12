@@ -1,0 +1,403 @@
+--- PAGE 1 ---
+GymPay
+Dashboard Requirements & Development Specification
+A practical handoff document for the product designer, frontend developer, backend
+developer, QA tester and project owner.
+Dashboard Primary purpose
+Super Admin Operate the GymPay SaaS platform across all gyms, subscriptions, revenue, support and system
+health.
+Gym Owner Run one gym: members, memberships, collections, renewals, attendance, staff and reports.
+Gym Staff Perform permitted day-to-day counter tasks quickly, with an auditable record of actions.
+Gym Customer / Member View membership, pay fees, access receipts, check attendance and manage profile.
+Product principle: One GymPay platform serves many separate gyms. A gym must never be able to view or modify
+another gym's data. The exact permissions described below should be enforced by the backend, not just hidden in the
+interface.
+Document status: MVP requirements baseline (cid:127) Version 1.0 (cid:127) Prepared for development estimation and implementation
+GymPay | Dashboard Requirements & Development Specification Page 1
+
+--- PAGE 2 ---
+1. Global Product Rules
+These rules apply to all four dashboards and should be designed into the application from the start.
+1.1 Roles and access
+(cid:127) SUPER_ADMIN: GymPay platform operator. Can see cross-gym platform data and manage platform-level settings. Access to
+sensitive customer records should be limited to legitimate support needs and logged.
+(cid:127) OWNER: Controls one gym's account, members, plans, payments, reports, staff and gym settings.
+(cid:127) STAFF: Can perform only the actions granted by the gym owner, such as adding members, recording payments and checking
+attendance.
+(cid:127) MEMBER: Can access only their own profile, membership, payment history, receipts and attendance.
+(cid:127) Every API request must validate the user's role and gym_id/member identity. Hiding a menu item is not security.
+1.2 Common interface requirements
+(cid:127) Responsive layout for desktop, tablet and mobile; member dashboard should be mobile-first.
+(cid:127) Consistent page header, navigation, search, notification area, profile menu and logout.
+(cid:127) Every data table should support loading, empty, error and populated states; use pagination for long lists.
+(cid:127) Use clear status labels: Active, Trial, Due, Expiring, Expired, Suspended, Paid, Failed, Refunded or Cancelled.
+(cid:127) Destructive or financial actions require confirmation and a reason where appropriate.
+(cid:127) Display dates in a consistent format and use the gym's configured timezone for dates, renewals and attendance.
+(cid:127) Provide accessible labels, keyboard navigation for core actions, readable contrast and clear form validation.
+1.3 Key business rules
+(cid:127) A payment is a transaction record; do not simply toggle a member's payment status to 'paid'. Keep amount, method, date,
+reference, recorder and status.
+(cid:127) Membership extension must create or update a membership period with a traceable history. Do not silently overwrite past
+periods.
+(cid:127) Payment gateway success must be confirmed server-side using a verified webhook/API response; never trust a browser
+success message alone.
+(cid:127) Automated WhatsApp messages need a log, delivery status, retry handling and duplicate-send prevention.
+(cid:127) Do not permanently delete financial transactions. Use void, refund or cancellation states and maintain an audit log.
+(cid:127) GymPay's own subscription billing is separate from the gym's collection of membership fees.
+1.4 Suggested shared navigation
+Role Primary navigation
+Super Admin Overview · Gyms · Users · Subscriptions · Payments/Revenue · WhatsApp · Reports · Support · System
+Settings · Audit Logs
+Gym Owner Dashboard · Members · Memberships/Plans · Payments · Attendance · Renewals · WhatsApp · Reports ·
+Staff · Gym Settings · Billing/Help
+Gym Staff Dashboard · Add/Search Member · Payments · Attendance · Renewals · WhatsApp (permission-based) ·
+Profile/Logout
+Member Home · Membership · Pay Fees · Payment History/Receipts · Attendance/QR · Profile · Notifications ·
+Support
+GymPay | Dashboard Requirements & Development Specification Page 2
+
+--- PAGE 3 ---
+2. Super Admin Dashboard
+Goal: give the GymPay platform operator a clear view of the overall business and the tools needed to onboard gyms, manage
+subscription access, troubleshoot problems and monitor platform health.
+2.1 Dashboard overview cards
+Card / metric What it means Expected behaviour
+Total Gyms All registered gym accounts. Click to open the gym directory.
+Active Gyms Gyms currently enabled and in good standing. Click to filter active gyms.
+Trial Gyms Gyms currently in free trial. Show trial end date and conversion follow-up.
+Suspended / Cancelled Accounts restricted or no longer subscribed. Show reason, status date and reactivation action.
+Total Members Aggregate member count across gyms. Show count only; member-level data should be
+access-controlled.
+Monthly Recurring Revenue Monthly value of active paid GymPay Define treatment of annual plans, discounts, refunds
+(MRR) subscriptions. and taxes.
+Renewals Due GymPay subscriptions renewing soon or Show due date, amount and reminder status.
+overdue.
+System/Integration Alerts Failed payment webhooks, WhatsApp failures or Link to a filtered issue list.
+platform errors.
+2.2 Gym directory and gym profile
+(cid:127) List gyms with gym name, owner, mobile/email, city, created date, plan, subscription status, renewal date, member count and
+last activity.
+(cid:127) Search by gym name, owner mobile/email or gym identifier; filter by status, plan, city, joining date and renewal date.
+(cid:127) Open a gym profile with account details, plan history, payment history, integration status, support tickets and audit history.
+(cid:127) Actions: approve/onboard if required, activate, place into grace period, suspend, reactivate, change plan, extend trial and
+initiate password reset flow.
+(cid:127) Require a reason for suspension/reactivation or manual subscription override; record operator, timestamp, old value and new
+value.
+2.3 GymPay subscription management
+(cid:127) Show plans, price, billing interval, trial length, start date, renewal date, status and gateway subscription/reference ID.
+(cid:127) Support statuses such as TRIAL, ACTIVE, PAST_DUE, GRACE_PERIOD, READ_ONLY, SUSPENDED, CANCELLED and
+EXPIRED.
+(cid:127) Show failed renewals, retry status and customer reminders; do not automatically delete data when access is suspended.
+(cid:127) Make the access policy visible: for example, active access fi grace period fi read-only fi suspended; the exact durations are
+configurable.
+(cid:127) Allow plan upgrades/downgrades with an effective date and clear proration/refund rules if supported.
+2.4 Revenue, payments and reports
+(cid:127) Revenue summary by day/month/year; filter by plan, payment status and billing period.
+(cid:127) Display gross collections, refunds, failed payments, discounts and taxes separately. Do not label gross collections as net
+revenue.
+(cid:127) Payment list: date, gym, plan, amount, tax, gateway, transaction/reference ID, status and refund status.
+(cid:127) Export CSV/Excel/PDF for authorized reports; record who exported sensitive data.
+(cid:127) Reports: new gyms, trial-to-paid conversion, MRR trend, renewal rate, churn, failed payments and subscription ageing.
+2.5 WhatsApp, support and system controls
+GymPay | Dashboard Requirements & Development Specification Page 3
+
+--- PAGE 4 ---
+(cid:127) Integration health: provider status, message count, delivered/failed messages, template errors, balance/usage where provider
+supports it.
+(cid:127) Search WhatsApp logs by gym, phone, template, time window, delivery status and provider message ID; protect message
+content and personal data.
+(cid:127) Support queue: ticket ID, gym, issue type, priority, owner, age, status and resolution notes.
+(cid:127) System alerts: API error rate, background job failures, overdue renewal jobs, webhook failures and storage/backup alerts
+where available.
+(cid:127) Settings: subscription plans, trial rules, grace-period policy, message templates, feature flags and support contact details.
+2.6 Super Admin acceptance checks
+(cid:127) Super Admin can find a gym and view its plan/status without manually querying the database.
+(cid:127) Suspension blocks the configured owner/staff access while preserving data and history.
+(cid:127) Every manual status or plan change creates an audit log with actor, time, reason and before/after values.
+(cid:127) Reports match the underlying transaction records for the same date range and status filters.
+(cid:127) A support user without elevated permission cannot access unrestricted payment/member details.
+GymPay | Dashboard Requirements & Development Specification Page 4
+
+--- PAGE 5 ---
+3. Gym Owner Dashboard
+Goal: show the owner what needs attention today—collections, renewals, member activity and staff operations—without
+forcing them to open several different screens.
+3.1 Dashboard overview cards
+Card / widget Information to display Primary action
+Total Members All member profiles, including inactive/expired where Open member list.
+relevant.
+Active Members Members with an active membership period today. Filter active members.
+Expiring Soon Memberships expiring in configurable windows such as 7 View list / send reminders.
+days.
+Expired Members Memberships past expiry without a current active period. View expired list / follow up.
+Today's Collection Successful payments recorded today, separated by Open today's payments.
+payment method.
+Pending/Due Payments Expected dues or recorded unpaid invoices, with amount View due list / remind.
+and age.
+Attendance Today Check-ins today compared with the gym's usual or Open attendance register.
+configured target.
+WhatsApp Status Messages sent/delivered/failed and any integration Open message logs/settings.
+warning.
+3.2 Member and membership management
+(cid:127) Member list columns: member code, name, mobile, plan, joining date, membership start/expiry, amount due, status and last
+check-in.
+(cid:127) Search by name, mobile or member code; filter by active/expired, plan, expiry window, payment status and joining date.
+(cid:127) Member profile tabs: personal details, current/past memberships, payments/receipts, attendance, reminders and audit/history.
+(cid:127) Add/edit members with validation for mobile number, duplicate detection and required fields; track who created or changed a
+record.
+(cid:127) Plan setup: name, duration, price, description, status and optional access/benefit notes. Price changes must not rewrite
+historical membership prices.
+(cid:127) Renewal: select plan, calculate dates and amount, apply permitted discount, record payment or mark due, then issue
+receipt/confirmation.
+3.3 Payments and collections
+(cid:127) Record cash, UPI, card, bank transfer or online payment; capture amount, date/time, reference/transaction ID and staff
+recorder.
+(cid:127) Show payment status such as pending, successful, failed, refunded or voided; support partial payments only if the business
+rules permit them.
+(cid:127) Provide receipt view/download/share; receipts should include gym identity, member, membership period, amount, payment
+method, date and receipt number.
+(cid:127) Daily/monthly collection report with method breakdown, staff breakdown, refunds and adjustments separated.
+(cid:127) Owner-only permissions for refunds, voids, discounts above a configured limit and edits to financial records.
+3.4 Renewals, reminders and attendance
+(cid:127) Upcoming expiry list with member, plan, expiry date, days remaining, outstanding amount and last reminder status.
+(cid:127) Configure reminders (example: 7 days, 3 days, 1 day before expiry, expiry day and follow-up after expiry) subject to WhatsApp
+template/consent rules.
+(cid:127) Send individual or bulk reminders; show a confirmation step, recipients, template and delivery results.
+GymPay | Dashboard Requirements & Development Specification Page 5
+
+--- PAGE 6 ---
+(cid:127) Attendance view with member, check-in time, check-out time if used, method (QR/manual/biometric) and staff/device.
+(cid:127) QR check-in must validate the membership status on the server; expired members should receive a clear renewal prompt
+rather than being counted as active.
+3.5 Staff, reports and settings
+(cid:127) Create staff accounts, assign roles/permissions, deactivate access and review last login/activity.
+(cid:127) Reports: collection, dues, expiring/expired memberships, attendance, new members, plan popularity and staff collection.
+(cid:127) Settings: gym name/logo/address/contact, timezone, currency, receipt settings, membership rules, notification templates and
+working hours.
+(cid:127) Owner's GymPay subscription panel must show current plan, member limit, renewal date, invoice/payment status and
+upgrade/help options.
+(cid:127) Notifications should surface failed payment integrations, low message quota if available, failed reminder jobs and approaching
+GymPay renewal.
+3.6 Gym Owner acceptance checks
+(cid:127) Owner can identify who is due or expiring and take a reminder/renewal action in a few clicks.
+(cid:127) A recorded payment appears in the payment history and collection reports exactly once.
+(cid:127) Renewing a membership updates current status/dates and preserves prior membership and payment history.
+(cid:127) Owner can see staff collection totals and trace a transaction to the staff member who recorded it.
+(cid:127) Owner cannot view another gym's data, even by changing a URL or API identifier.
+GymPay | Dashboard Requirements & Development Specification Page 6
+
+--- PAGE 7 ---
+4. Gym Staff Dashboard
+Goal: make front-desk tasks fast and safe. Staff should see only the information and controls needed for their assigned
+duties.
+4.1 Staff dashboard overview
+Widget What it shows Why it matters
+Today's Check-ins Number of successful check-ins today and recent Quickly monitor arrivals.
+activity.
+Today's Collection Payments recorded by this staff member today; show Accountability and end-of-day reconciliation.
+method breakdown if permitted.
+Pending Payments Members marked due or with unpaid balances the staff Follow up at the counter.
+is allowed to see.
+Expiring Soon Short list of memberships approaching expiry. Prompt renewals without searching manually.
+Quick Actions Add member, record payment, check in member, search Reduce navigation and training time.
+member and send approved reminder.
+4.2 Member operations
+(cid:127) Search member by name, mobile or member code; show only the gym the staff belongs to.
+(cid:127) Add member using owner-configured fields and plans; warn about duplicate mobile/member code before saving.
+(cid:127) View permitted profile information: membership status, expiry date, balance due, payment history summary and attendance.
+(cid:127) Edit only allowed fields. Sensitive details, plan prices, staff permissions and owner settings remain restricted unless granted.
+(cid:127) Do not allow staff to permanently delete member records; use deactivate/correction workflow with reason if permitted.
+4.3 Payment collection
+(cid:127) Select member and relevant membership/invoice; enter amount, payment method and reference details.
+(cid:127) Cash and offline payments should clearly state that staff is recording a payment, not verifying an external transfer
+automatically.
+(cid:127) For online payments, show gateway-confirmed status only after server-side verification.
+(cid:127) Generate a receipt and send/share it through approved channels; avoid exposing full payment credentials.
+(cid:127) Staff cannot refund, void, alter a confirmed transaction or apply high-value discounts unless the owner grants that permission.
+(cid:127) Provide a daily collection summary for the logged-in staff member and a clear handover/reconciliation view if required.
+4.4 Attendance and renewals
+(cid:127) Manual check-in: search/scan member, validate current membership, record time and show success or an actionable
+expired-membership message.
+(cid:127) QR check-in: validate the gym/member token on the backend, prevent duplicate accidental check-ins within a configured
+interval and log method/device.
+(cid:127) Check-out is optional and should be enabled only if the gym wants session duration tracking.
+(cid:127) View expiring members and send only owner-approved reminder templates; bulk-send capability should be
+permission-controlled.
+(cid:127) Never let a staff user mark an expired membership active without a valid renewal or explicit permitted override.
+4.5 Staff acceptance checks
+(cid:127) Staff can complete a normal member search, payment entry and attendance check-in on a phone/tablet with minimal steps.
+(cid:127) A staff member cannot open owner-only reports, edit plan prices or change the gym subscription unless explicitly permitted.
+(cid:127) Every payment and membership change records the staff user, timestamp and source.
+GymPay | Dashboard Requirements & Development Specification Page 7
+
+--- PAGE 8 ---
+(cid:127) If the internet is unavailable, the app must clearly state whether an action failed or is pending; it must not falsely show payment
+success.
+GymPay | Dashboard Requirements & Development Specification Page 8
+
+--- PAGE 9 ---
+5. Gym Customer / Member Dashboard
+Goal: help members answer four questions quickly: Is my membership active? When does it expire? Have I paid? How do I
+check in or renew?
+5.1 Home screen
+Widget Required information Action
+Welcome/Profile Member name, gym name and basic profile details. Open profile/edit permitted fields.
+Membership Status Active/expiring/expired, plan name, start date and expiry View membership details / renew.
+date.
+Days Remaining Days until expiry; show clear warning when near expiry. Open renewal flow.
+Amount Due Outstanding amount, due date and clear fee description, if Pay now or contact gym.
+applicable.
+Check-in QR Member-specific QR or secure rotating/tokenised code if Display QR for gym entry.
+supported.
+Recent Activity Recent payments, receipts and attendance entries. Open history.
+5.2 Membership and renewal
+(cid:127) Show current plan, membership period, benefits/notes configured by the gym, and prior memberships where the owner
+permits.
+(cid:127) Show renewal options and prices configured by the gym; the member must see the final payable amount before paying.
+(cid:127) If online renewal is enabled, open the payment gateway securely and show pending/success/failure based on backend
+confirmation.
+(cid:127) A member payment must not extend membership solely because the browser returned to a success page; extension occurs
+after verified payment.
+(cid:127) If the gym requires manual approval for certain plans, show a pending confirmation state and explain what happens next.
+5.3 Payments and receipts
+(cid:127) Payment history list with date, amount, plan/period, payment method (where safe), transaction/reference ID in masked form
+and status.
+(cid:127) Open/download/share receipt or invoice if issued by the gym; include a clear support contact for payment disputes.
+(cid:127) Failed or pending payments should explain the next step and avoid prompting repeated payment while the previous transaction
+is unresolved.
+(cid:127) Never display full card details, gateway secrets or another member's payment data.
+5.4 Attendance, profile and notifications
+(cid:127) Attendance history with date/time and gym/location if relevant; show a helpful empty state for new members.
+(cid:127) Profile fields: name, mobile, email and optional emergency contact or other gym-configured fields. Require verification before
+changing the login mobile number.
+(cid:127) Notifications: upcoming renewal reminders, payment confirmations, membership status changes and gym announcements if
+this feature is enabled.
+(cid:127) Support/help screen: gym contact details, FAQ or raise-a-ticket form; provide a ticket/reference number if tickets are supported.
+(cid:127) Allow logout and a secure account recovery flow. Do not expose administrative controls in the member interface.
+5.5 Member acceptance checks
+(cid:127) Member can view only their own information and cannot access another member by editing an ID in a URL/API request.
+(cid:127) Member sees the correct active/expired state based on the membership period and configured business rules.
+(cid:127) Receipt download/share works on common mobile browsers/devices and does not expose private data publicly.
+GymPay | Dashboard Requirements & Development Specification Page 9
+
+--- PAGE 10 ---
+(cid:127) QR tokens are validated by the server and cannot be trivially reused to impersonate another member.
+(cid:127) A payment failure is clearly communicated and does not create a false paid status or duplicate membership extension.
+GymPay | Dashboard Requirements & Development Specification Page 10
+
+--- PAGE 11 ---
+6. Shared Workflows and Backend Requirements
+These workflows connect the dashboards. The development team should implement them as backend-controlled processes
+with auditability.
+6.1 Payment-to-membership workflow
+Online payment: Member selects Pay Now fi GymPay creates a pending payment/order fi gateway checkout fi
+gateway sends webhook fi backend verifies signature and transaction status fi payment becomes successful fi
+membership is created/extended according to the gym's renewal rules fi receipt/confirmation is generated fi
+dashboards and reports update.
+Offline payment: Owner/staff with permission selects member fi enters amount/method/date/reference fi backend records
+transaction and recorder fi receipt is generated fi membership period is created/extended if the payment is linked to a
+renewal. For UPI/bank transfers recorded manually, clearly distinguish 'staff recorded' from 'gateway verified'.
+6.2 Expiry automation workflow
+(cid:127) A scheduled backend job runs daily using each gym's configured timezone.
+(cid:127) Find memberships due to expire in configured reminder windows; send only if an equivalent reminder has not already been
+sent for that membership/window.
+(cid:127) Write every attempted message to a WhatsApp/notification log with template, recipient, provider ID, delivery status and error
+details.
+(cid:127) At expiry, calculate membership status from dates/current membership records; do not rely only on a one-time status update
+that can become stale.
+(cid:127) Retry transient failures with limits and alert the owner/platform admin after repeated failure.
+6.3 Suggested core data entities
+Entity Minimum purpose / key fields
+Gyms id, name, owner_user_id, contact, timezone, status, created_at
+Users id, gym_id (nullable for platform admins), name, mobile/email, role, status, last_login
+Members id, gym_id, member_code, name, mobile, status, created_at, updated_at
+Membership Plans id, gym_id, name, duration, price, status
+Memberships id, gym_id, member_id, plan_id, start_date, expiry_date, final_amount, status
+Payments id, gym_id, member_id, membership_id, amount, method, reference, status, payment_date,
+recorded_by
+Attendance id, gym_id, member_id, check_in_time, check_out_time, method, device/source
+Message Logs id, gym_id, member_id, template, phone, sent_at, delivery_status, provider_message_id, error
+GymPay Subscriptions id, gym_id, plan, amount, start_date, renewal_date, status, gateway_reference
+Audit Logs id, gym_id, actor_user_id, action, entity, entity_id, before/after summary, timestamp, reason
+6.4 Minimum security requirements
+(cid:127) Enforce tenant isolation on every server-side query and mutation; gym_id must come from trusted session/authorization
+context, not a client-supplied value alone.
+(cid:127) Use secure authentication, OTP/session expiry, rate limits and role-based authorization.
+(cid:127) Verify payment webhooks, prevent duplicate webhook processing with idempotency keys, and log the gateway
+event/reference.
+(cid:127) Protect personal information in logs and exports; use least-privilege access and encrypted transport.
+(cid:127) Maintain backups and a tested recovery process; restrict production database access.
+GymPay | Dashboard Requirements & Development Specification Page 11
+
+--- PAGE 12 ---
+(cid:127) Audit sensitive actions: payment edits/voids/refunds, membership overrides, role changes, account suspension and data
+exports.
+6.5 Recommended API areas (illustrative)
+Area Example operations
+Authentication login/OTP, refresh session, logout, reset/recovery
+Members list/search, create, view, update permitted fields, deactivate
+Memberships list, create/renew, calculate expiry, view history
+Payments create offline payment, create gateway order, gateway webhook, receipt, refund/void with permission
+Attendance check-in, check-out, history, QR validation
+Notifications send reminder, bulk reminder, message status webhook, logs
+GymPay Admin gyms, plans, subscriptions, platform reports, support and audit
+GymPay | Dashboard Requirements & Development Specification Page 12
+
+--- PAGE 13 ---
+7. Recommended Build Sequence
+Build the workflows in a sequence that creates a usable product early while protecting the financial and access-control
+foundations.
+Phase Deliverables Definition of done
+1. Foundation Authentication, roles, gym setup, tenant isolation, base Users can sign in and only access the right gym/role.
+navigation.
+2. Members & plans Member CRUD, search, membership plans and Owner/staff can add and find members; dates/status
+membership history. are consistent.
+3. Payments Offline payments, payment history, receipts, collection Every transaction is traceable and reports reconcile.
+summaries and audit logs.
+4. Owner & staff Metric cards, due/expiry lists, attendance and role Priority tasks are actionable; unauthorized actions
+dashboards permissions. are blocked.
+5. Member dashboard Membership view, payment history, receipts, profile and Member sees only their own data on mobile.
+QR screen.
+6. Reminders Expiry scheduler, WhatsApp provider, templates, logs, Test reminders send once per rule and failures are
+retries and duplicate prevention. visible.
+7. Online payments Gateway checkout, verified webhook, membership Success/failure/retry cases work without duplicate
+extension and confirmation. payments.
+8. Super Admin Gym directory, platform subscriptions, revenue, support Operator can manage accounts and inspect audit
+and system health. history.
+9. Hardening Security tests, backups, monitoring, performance and Tenant isolation and payment workflows pass
+production deployment. regression tests.
+8. QA / Acceptance Checklist
+(cid:127) Role matrix test: try every important action as Super Admin, Owner, Staff and Member; verify both allowed and denied
+outcomes.
+(cid:127) Tenant isolation test: create two gyms and attempt to access the other gym's members, payments, reports and files by
+changing identifiers.
+(cid:127) Date boundary test: membership expires today, tomorrow, at month-end, leap day and across timezone boundaries.
+(cid:127) Payment test: success, decline, timeout, delayed webhook, duplicate webhook, refund, partial payment if supported and offline
+payment correction.
+(cid:127) Reminder test: every configured reminder window, opt-out/consent rules, provider outage, duplicate prevention and retry.
+(cid:127) Attendance test: active member, expired member, invalid QR, reused QR, double scan and manual override permissions.
+(cid:127) Report reconciliation: compare dashboard totals with filtered transaction rows and ensure refunds/voids are treated
+consistently.
+(cid:127) Mobile test: small screen, poor network, session expiry, form validation, receipt download and QR display.
+(cid:127) Audit test: ensure privileged changes and financial corrections record actor, timestamp, reason and old/new values.
+(cid:127) Operational test: backup restore, monitoring alerts, support escalation and subscription suspension/reactivation.
+9. Items to Confirm Before Development Starts
+The product owner and development team should decide these items before locking estimates. If undecided, record the
+default assumption in the project plan.
+(cid:127) Does each member have a separate login from launch, or is the member dashboard phase two?
+(cid:127) Which payment gateway will be used, and will offline UPI/cash payments be manually recorded?
+(cid:127) Are partial payments, refunds, discounts, family memberships or multiple active plans supported in MVP?
+(cid:127) Will attendance use QR only at launch, or is biometric integration required later?
+GymPay | Dashboard Requirements & Development Specification Page 13
+
+--- PAGE 14 ---
+(cid:127) Which WhatsApp provider, approved templates, consent/opt-out rules and monthly message limits apply?
+(cid:127) What are the GymPay subscription tiers, trial duration, grace period, read-only behaviour and suspension rules?
+(cid:127) Which reports must export to PDF/Excel in the first release?
+(cid:127) Who can change a member's expiry date, void a payment, issue a refund or override attendance status?
+(cid:127) What data retention, privacy notice, terms of service and customer support process will be provided?
+Developer handoff note: This document defines functional dashboard requirements, not final pixel-perfect UI or a
+complete API contract. The team should convert each requirement into user stories, permission rules, wireframes,
+database migrations, API specifications and test cases before implementation.
+End of specification.
+GymPay | Dashboard Requirements & Development Specification Page 14

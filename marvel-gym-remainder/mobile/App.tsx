@@ -1,4 +1,7 @@
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import Constants from 'expo-constants';
+import { useFonts, PlusJakartaSans_400Regular, PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, BackHandler, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -38,6 +41,7 @@ function Website() {
     javaScriptEnabled domStorageEnabled sharedCookiesEnabled startInLoadingState
     originWhitelist={['http://*','https://*','tel:*','whatsapp:*']}
     setSupportMultipleWindows={false}
+    onMessage={event=>{void (async()=>{try{if(new URL(event.nativeEvent.url).origin!==new URL(websiteUrl).origin)return;const data=JSON.parse(event.nativeEvent.data);const types:Record<string,string>={pdf:'application/pdf',csv:'text/csv',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'};const extension=String(data.name).split('.').pop()||'';if(data.type!=='GYMPAY_EXPORT'||!/^[a-zA-Z0-9._-]{1,100}$/.test(data.name)||types[extension]!==data.mime||typeof data.base64!=='string'||data.base64.length>14_000_000||!/^[A-Za-z0-9+/]*={0,2}$/.test(data.base64))throw new Error('Unsupported export.');if(!FileSystem.cacheDirectory||!await Sharing.isAvailableAsync())throw new Error('Sharing is unavailable on this device.');const path=FileSystem.cacheDirectory+data.name;await FileSystem.writeAsStringAsync(path,data.base64,{encoding:FileSystem.EncodingType.Base64});await Sharing.shareAsync(path,{mimeType:data.mime,dialogTitle:'Save or share Gym Pay report'});}catch(e){Alert.alert('Export unavailable',e instanceof Error?e.message:'Please retry.');}})();}}
     onNavigationStateChange={event=>setCanGoBack(event.canGoBack)}
     onShouldStartLoadWithRequest={request=>{
       try {
@@ -54,14 +58,18 @@ function Website() {
     renderLoading={()=> <View style={styles.loading}><ActivityIndicator size="large" color="#ffe600"/><Text style={styles.loadingText}>Loading Gym Pay…</Text></View>}
   />;
 }
-export default function App() {return <SafeAreaProvider><SafeAreaView style={styles.container}><StatusBar style="dark"/><Website/></SafeAreaView></SafeAreaProvider>;}
+export default function App() {
+  const [fontsLoaded, fontError] = useFonts({ PlusJakartaSans_400Regular, PlusJakartaSans_700Bold });
+  return <SafeAreaProvider><SafeAreaView style={styles.container}><StatusBar style="dark"/>{fontsLoaded || fontError ? <Website/> : <View style={styles.loading}><ActivityIndicator size="large" color="#ffe600"/></View>}</SafeAreaView></SafeAreaProvider>;
+}
 const styles=StyleSheet.create({
   container:{flex:1,backgroundColor:'#f5f6f8'},webview:{flex:1,backgroundColor:'#f5f6f8'},
   message:{flex:1,padding:28,justifyContent:'center',alignItems:'center',gap:18},
-  title:{fontSize:24,fontWeight:'700',textAlign:'center',color:'#17191c'},
-  description:{fontSize:15,lineHeight:24,textAlign:'center',color:'#6b7280'},
+  title:{fontSize:24,fontFamily:'PlusJakartaSans_700Bold',textAlign:'center',color:'#17191c'},
+  description:{fontSize:15,fontFamily:'PlusJakartaSans_400Regular',lineHeight:24,textAlign:'center',color:'#6b7280'},
   button:{backgroundColor:'#ffe600',paddingHorizontal:24,paddingVertical:14,borderRadius:12},
-  buttonText:{color:'#111',fontSize:16,fontWeight:'700'},
+  buttonText:{color:'#111',fontSize:16,fontFamily:'PlusJakartaSans_700Bold'},
   loading:{position:'absolute',inset:0,justifyContent:'center',alignItems:'center',backgroundColor:'#f5f6f8'},
-  loadingText:{color:'#6b7280',marginTop:14},
+  loadingText:{color:'#6b7280',marginTop:14,fontFamily:'PlusJakartaSans_400Regular'},
 });
+

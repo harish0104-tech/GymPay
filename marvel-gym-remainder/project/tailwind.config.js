@@ -36,9 +36,9 @@ export default {
         },
       },
       fontFamily: {
-        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
-        heading: ['Space Grotesk', 'system-ui', 'sans-serif'],
-        body: ['DM Sans', 'system-ui', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        heading: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        body: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         'xl2': '1.25rem',

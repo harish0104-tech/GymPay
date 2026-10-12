@@ -4,7 +4,8 @@
     "slug": "marvel-fitness-culture",
     "version": "1.0.6",
     "plugins": [
-      "expo-sharing"
+      "expo-sharing",
+      "expo-font"
     ],
     "orientation": "default",
     "icon": "./assets/icon.png",
