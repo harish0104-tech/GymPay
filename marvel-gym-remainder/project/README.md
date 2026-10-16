@@ -1,4 +1,4 @@
-# Gym Pay — shared frontend demo
+# Gym Pay — multi-tenant gym management app
 
 The browser and React Native app use the same responsive frontend. The native app is an Expo / React Native WebView shell, not a separate copy of the screens.
 
@@ -46,7 +46,22 @@ Existing frontend demo records are migrated on first use. The login screen lists
 
 ## Demo boundaries
 
-Roles and access checks demonstrate the workflow; they are not server-side security. Data lives in `localStorage` under `gympay-workflow-v2`, and the active demo account is in `sessionStorage`. Real OTP authentication, tenant isolation, online payment verification, background jobs and external notification delivery require a backend. Member checkout clearly records a demo payment without transferring money. No backend was added.
+When no production Supabase environment is configured, the app uses the original demo accounts and stores demo data in `localStorage` under `gympay-workflow-v2`; the active demo account is in `sessionStorage`. Demo role checks are not server-side security. Member checkout in demo mode records a simulated payment without transferring money.
+
+## Production SaaS backend foundation
+
+The repository now includes a Supabase/Postgres multi-tenant schema and a server-side staff-account provisioning function. `supabase/migrations/20261016090000_multitenant_core.sql` creates separate gym workspaces, users, plans, members, memberships, payments, attendance, expenses, reminders, settings, and audit events. Row Level Security ties gym data to the signed-in profile; staff access is permission-scoped in the database. The `invite-staff` Edge Function verifies the caller is the gym owner before it provisions or updates a staff identity. The service-role key is used only inside that function and must never be exposed to the website.
+
+To prepare a Supabase project:
+
+1. Copy `.env.example` to `.env` and enter the project's URL and publishable key.
+2. Apply the SQL migration with the Supabase CLI (`supabase link`, then `supabase db push`).
+3. Set the `GYMPAY_APP_ORIGIN` Edge Function secret to the exact HTTPS website origin and deploy `invite-staff` (`supabase functions deploy invite-staff`). Supabase provides the URL, anon key, and service-role key to deployed functions; keep the service-role key server-side.
+4. Enable phone OTP and configure an SMS provider in Supabase Auth before inviting staff or allowing owner signup.
+
+When both `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set, the website switches to phone-OTP owner signup/sign-in and loads the signed-in gym's data through Supabase PostgREST. Owner actions are sent through one transactional database RPC protected by RLS. Staff accounts are created or updated through the owner-only Edge Function, and staff access is enforced again by database policies. With no Supabase environment configured, the app remains in local demo mode. Existing demo data is never automatically imported into a production project.
+
+This production foundation currently provisions gym owners and staff. Member authentication, platform-wide administration, subscription billing, payment gateway settlement, WhatsApp/SMS reminders, backups and monitoring still need their respective providers and implementation before launch. The schema and app require a real Supabase project, enabled phone OTP/SMS delivery, an applied migration, and deployed Edge Function; those external services cannot be activated from this workspace.
 
 ## Verification
 
