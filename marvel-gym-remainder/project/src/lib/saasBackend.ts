@@ -1,4 +1,4 @@
-import type * as M from '../workflow/model';
+import * as M from '../workflow/model';
 
 const API_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '') || '';
 const PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
